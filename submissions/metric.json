@@ -1,0 +1,51 @@
+{
+  "participant": "audit-e2e-02",
+  "dataset_sha256": "58b4aea511783f3c18ae6f740bce8e8e108a508ccde8cca9fe4c0d4f83f87ae2",
+  "provenance": {
+    "kind": "constructed",
+    "source_dataset": "practice2-recordings-20261116",
+    "generation_method": "실측 자료의 초기 코드, 최종 코드와 작업 예를 참조해 네 작업 경로를 재구성함. 새 Codex 추론을 실행한 기록이 아님.",
+    "grading_scope": "독립 채점 근거는 참조한 최종 코드에 적용됨. 재구성한 작업 경로 전체를 실제 실행했다는 뜻은 아님.",
+    "dataset_id": "practice2-log-pairs-v1",
+    "usage_basis": "o200k_base로 가시적 텍스트를 세고 공통 접두부 10,700토큰과 응답당 추론 16토큰을 가정함. 실제 Codex 서버의 사용량 측정값이 아님.",
+    "time_basis": "상대 시각. 모델 시간은 1800ms + 비캐시 입력/6000*1000 + 출력/55*1000으로 구성함. 도구 시간은 작업별 모델값이며 실제 경과 시간 측정값이 아님."
+  },
+  "metric": {
+    "name": "자료 재조회 비율",
+    "purpose": "동일 문서 버전과 범위의 반복 조회 관찰",
+    "expression": "100 * same_document_range_lookups / document_lookups",
+    "aggregation": "mean",
+    "unit": "%",
+    "interpretation": "재구성 자료에서 반복 조회의 비율을 확인하며 필요성은 로그에서 검토한다."
+  },
+  "results": [
+    {
+      "scenario": "context_overload",
+      "label": "입력 컨텍스트 과다",
+      "value": 0.0,
+      "unit": "%",
+      "reason": ""
+    },
+    {
+      "scenario": "repeated_work",
+      "label": "중복 전송과 재계산",
+      "value": 80.0,
+      "unit": "%",
+      "reason": ""
+    },
+    {
+      "scenario": "reasoning_reliance",
+      "label": "LLM 추론에 대한 과도한 의존",
+      "value": 0.0,
+      "unit": "%",
+      "reason": ""
+    },
+    {
+      "scenario": "reference",
+      "label": "기법 적용 사례",
+      "value": 0.0,
+      "unit": "%",
+      "reason": ""
+    }
+  ]
+}
