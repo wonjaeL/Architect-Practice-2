@@ -50,6 +50,19 @@ def diagnose(root: Path, data: Path, offline: bool = False) -> dict:
             record("Codex 로그인", result.returncode == 0,
                    "로그인 확인" if result.returncode == 0 else "로그인 확인 실패",
                    "codex login 후 다시 실행하세요.")
+            help_result = subprocess.run([codex, "sandbox", "--help"], capture_output=True,
+                                         text=True, encoding="utf-8", errors="replace", timeout=15)
+            platform = "windows" if sys.platform == "win32" else ("macos" if sys.platform == "darwin" else "linux")
+            # Older CLI releases used platform subcommands; newer ones select the host automatically.
+            platform_args = [platform] if any(line.strip().startswith(platform + " ") for line in help_result.stdout.splitlines()) else []
+            probe = subprocess.run(
+                [codex, "sandbox", *platform_args, "-c", 'sandbox_mode="workspace-write"', "--", sys.executable,
+                 "-c", "import tempfile; f=tempfile.TemporaryFile(dir='.'); f.write(b'doctor'); f.close()"],
+                cwd=root, capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=20,
+            )
+            record("Codex 실행 환경", probe.returncode == 0,
+                   "샌드박스 내 명령·파일 저장 확인" if probe.returncode == 0 else "샌드박스에서 명령을 실행하지 못함",
+                   "Codex 터미널 실행과 OS 샌드박스 설정을 강사에게 확인하세요. 제한된 서버·컨테이너라면 준비된 실습 PC/VM을 사용하세요.")
         except (OSError, subprocess.TimeoutExpired):
             record("Codex 로그인", False, "Codex 실행 실패 또는 시간 초과", "터미널에서 codex login status를 확인하세요.")
 

@@ -32,13 +32,13 @@ class DoctorTests(unittest.TestCase):
     def tearDown(self):
         self.tmp.cleanup()
 
-    def diagnose(self, *, offline=False, login=0, missing=False):
+    def diagnose(self, *, offline=False, login=0, missing=False, sandbox=0):
         original_run = subprocess.run
         original_which = shutil.which
 
         def run(args, **kwargs):
             if args[0] == "fake-codex":
-                return subprocess.CompletedProcess(args, login, "", "")
+                return subprocess.CompletedProcess(args, login if "login" in args else sandbox, "", "")
             return original_run(args, **kwargs)
 
         def which(name):
@@ -67,8 +67,15 @@ class DoctorTests(unittest.TestCase):
         self.assertFalse(result["ready"])
         self.assertIn("SKIP", [c["status"] for c in result["checks"]])
 
+    def test_login_alone_is_not_ready_when_sandbox_cannot_execute(self):
+        result = self.diagnose(sandbox=1)
+        self.assertFalse(result["ready"])
+        checks = {c["name"]: c for c in result["checks"]}
+        self.assertEqual(checks["Codex 로그인"]["status"], "PASS")
+        self.assertEqual(checks["Codex 실행 환경"]["status"], "FAIL")
+
     def test_failed_remote_is_reported_without_traceback(self):
-        shutil.rmtree(self.remote)
+        self.remote.rename(self.root / "unavailable.git")
         result = self.diagnose()
         self.assertFalse(result["ready"])
         self.assertEqual(next(c for c in result["checks"] if c["name"] == "GitHub 쓰기 연결")["status"], "FAIL")
